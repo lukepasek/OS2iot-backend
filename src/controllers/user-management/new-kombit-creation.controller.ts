@@ -19,7 +19,6 @@ import {
   Param,
   ParseIntPipe,
   Put,
-  Query,
   Req,
   UseGuards,
 } from "@nestjs/common";
@@ -35,6 +34,7 @@ import { OrganizationService } from "@services/user-management/organization.serv
 import { PermissionService } from "@services/user-management/permission.service";
 import { UserService } from "@services/user-management/user.service";
 import { ApiAuth } from "@auth/swagger-auth-decorator";
+import { checkIfUserHasAccessToUser } from "@helpers/security-helper";
 
 @UseGuards(JwtAuthGuard)
 @ApiAuth()
@@ -133,19 +133,28 @@ export class NewKombitCreationController {
 
   @Get(":id")
   @ApiOperation({ summary: "Get one user" })
-  async find(
-    @Param("id", new ParseIntPipe()) id: number,
-    @Query("extendedInfo") extendedInfo?: boolean
-  ): Promise<UserResponseDto> {
-    const getExtendedInfo = extendedInfo != null ? extendedInfo : false;
+  async find(@Req() req: AuthenticatedRequest, @Param("id", new ParseIntPipe()) id: number): Promise<UserResponseDto> {
+    let dbUser;
+
     try {
+      dbUser = await this.userService.findOne(id);
+    } catch (err) {
+      throw new NotFoundException(ErrorCodes.IdDoesNotExists);
+    }
+
+    try {
+      checkIfUserHasAccessToUser(req, dbUser);
+
+      dbUser.permissions.forEach(perm => {
+        delete perm.organization;
+      });
+
       // Don't leak the passwordHash
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      const { passwordHash, ...user } = await this.userService.findOne(id, getExtendedInfo);
+      const { passwordHash: _, ...user } = dbUser;
 
       return user;
     } catch (err) {
-      throw new NotFoundException(ErrorCodes.IdDoesNotExists);
+      throw err;
     }
   }
 }
