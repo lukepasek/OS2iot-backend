@@ -157,9 +157,12 @@ export class OpenDataDkSharingService {
     ds.contactPoint["@type"] = "vcard:Contact";
     ds.contactPoint.fn = dataset.authorName;
     ds.contactPoint.hasEmail = `mailto:${dataset.authorEmail}`;
-    ds.documentation = dataset.documentationUrl;
-    ds.frequency = dataset.updateFrequency;
-    ds.dataDirectory = dataset.dataDirectory;
+    ds.documentation =
+      !dataset.documentationUrl || dataset.documentationUrl?.startsWith("https://")
+        ? dataset.documentationUrl
+        : `https://${dataset.documentationUrl}`;
+    ds.update_frequency = dataset.updateFrequency;
+    ds.data_directory = dataset.dataDirectory;
 
     ds.distribution = [this.mapDistribution(organization, dataset)];
 

@@ -38,8 +38,8 @@ export class Dataset {
   spatial: string;
   theme: string[];
   documentation: string;
-  frequency: string | undefined;
-  dataDirectory: boolean;
+  update_frequency: string | undefined;
+  data_directory: boolean;
 }
 
 export class DCATRootObject {
