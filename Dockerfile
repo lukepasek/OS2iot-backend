@@ -1,7 +1,7 @@
 # from: https://github.com/Saluki/nestjs-template
-FROM node:20-alpine as builder
+FROM node:20-alpine AS builder
 
-ENV NODE_ENV build
+ENV NODE_ENV=build
 
 RUN npm install -g nest eslint jest
 
@@ -25,6 +25,6 @@ RUN npm run build
 
 CMD ["npm", "run", "start:dev"]
 
-FROM builder as prod
+FROM builder AS prod
 
 CMD ["npm", "run", "start:prod"]
